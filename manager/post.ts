@@ -1,5 +1,11 @@
+// src/manager/post.ts
+import { postModel, IPost, IAddress, IImage } from '../models/post';
 
-import { postModel, IPost, IAddress } from '../models/post'
+// DTO để trả về client
+export interface ImageDTO {
+  data:        string;  // data URI: "data:image/jpeg;base64,…"
+  contentType: string;
+}
 
 export interface PostDTO {
   id:           string;
@@ -9,7 +15,7 @@ export interface PostDTO {
   price:        number;
   area:         number;
   address:      IAddress;
-  images:       string[];
+  images:       ImageDTO[];
   createdAt:    Date;
   updatedAt:    Date;
 }
@@ -21,15 +27,19 @@ export interface ManagerResult<T = any> {
   statusCode: number;
 }
 
-// 1) List all posts
+// helper chuyển IImage → ImageDTO
+function toDTO(img: IImage): ImageDTO {
+  const b64 = img.data.toString('base64');
+  return {
+    data:        `data:${img.contentType};base64,${b64}`,
+    contentType: img.contentType
+  };
+}
+
 export async function listPosts(): Promise<ManagerResult<PostDTO[]>> {
   try {
-    // dùng .lean<IPost>() để TS hiểu docs là IPost & { _id: ObjectId }[]
-    const docs = await postModel.find()
-      .sort('-createdAt')
-      .exec();
-
-    const data: PostDTO[] = docs.map(d => ({
+    const docs = await postModel.find().sort('-createdAt').exec();
+    const data = docs.map(d => ({
       id:           d._id.toString(),
       title:        d.title,
       description:  d.description,
@@ -37,24 +47,21 @@ export async function listPosts(): Promise<ManagerResult<PostDTO[]>> {
       price:        d.price,
       area:         d.area,
       address:      d.address,
-      images:       d.images,
+      images:       d.images.map(toDTO),
       createdAt:    d.createdAt,
       updatedAt:    d.updatedAt
     }));
-
     return { status: true, message: 'FETCH_SUCCESS', data, statusCode: 200 };
   } catch (err: any) {
-    console.error('[Posts] list error', err);
+    console.error(err);
     return { status: false, message: err.message, statusCode: 500 };
   }
 }
 
-// 2) Get single post by id
 export async function getPost(id: string): Promise<ManagerResult<PostDTO>> {
   try {
     const d = await postModel.findById(id).exec();
     if (!d) return { status: false, message: 'NOT_FOUND', statusCode: 404 };
-
     const data: PostDTO = {
       id:           d._id.toString(),
       title:        d.title,
@@ -63,25 +70,22 @@ export async function getPost(id: string): Promise<ManagerResult<PostDTO>> {
       price:        d.price,
       area:         d.area,
       address:      d.address,
-      images:       d.images,
+      images:       d.images.map(toDTO),
       createdAt:    d.createdAt,
       updatedAt:    d.updatedAt
     };
     return { status: true, message: 'FETCH_SUCCESS', data, statusCode: 200 };
   } catch (err: any) {
-    console.error('[Posts] get error', err);
+    console.error(err);
     return { status: false, message: err.message, statusCode: 500 };
   }
 }
 
-// 3) Create new post
 export async function createPost(
-  body: Omit<PostDTO, 'id' | 'createdAt' | 'updatedAt'>,
+  body: Omit<IPost, 'createdAt' | 'updatedAt'>
 ): Promise<ManagerResult<PostDTO>> {
   try {
-    // create() trả về Document<IPost>, không cần .lean() ở đây
     const d = await postModel.create(body);
-
     const data: PostDTO = {
       id:           d._id.toString(),
       title:        d.title,
@@ -90,26 +94,24 @@ export async function createPost(
       price:        d.price,
       area:         d.area,
       address:      d.address,
-      images:       d.images,
+      images:       d.images.map(toDTO),
       createdAt:    d.createdAt,
       updatedAt:    d.updatedAt
     };
     return { status: true, message: 'CREATE_SUCCESS', data, statusCode: 201 };
   } catch (err: any) {
-    console.error('[Posts] create error', err);
+    console.error(err);
     return { status: false, message: err.message, statusCode: 500 };
   }
 }
 
-// 4) Update existing post
 export async function updatePost(
   id: string,
-  body: Partial<Omit<PostDTO, 'id' | 'createdAt' | 'updatedAt'>>,
+  body: Partial<Omit<IPost, 'createdAt' | 'updatedAt'>>
 ): Promise<ManagerResult<PostDTO>> {
   try {
     const d = await postModel.findByIdAndUpdate(id, body, { new: true }).exec();
     if (!d) return { status: false, message: 'NOT_FOUND', statusCode: 404 };
-
     const data: PostDTO = {
       id:           d._id.toString(),
       title:        d.title,
@@ -118,27 +120,24 @@ export async function updatePost(
       price:        d.price,
       area:         d.area,
       address:      d.address,
-      images:       d.images,
+      images:       d.images.map(toDTO),
       createdAt:    d.createdAt,
       updatedAt:    d.updatedAt
     };
     return { status: true, message: 'UPDATE_SUCCESS', data, statusCode: 200 };
   } catch (err: any) {
-    console.error('[Posts] update error', err);
+    console.error(err);
     return { status: false, message: err.message, statusCode: 500 };
   }
 }
 
-// 5) Delete post
-export async function deletePost(id: string): Promise<ManagerResult<{ id: string }>> {
+export async function deletePost(id: string): Promise<ManagerResult<{id:string}>> {
   try {
-    const d = await postModel.findByIdAndDelete(id).lean<IPost>().exec();
+    const d = await postModel.findByIdAndDelete(id).exec();
     if (!d) return { status: false, message: 'NOT_FOUND', statusCode: 404 };
     return { status: true, message: 'DELETE_SUCCESS', data: { id }, statusCode: 200 };
   } catch (err: any) {
-    console.error('[Posts] delete error', err);
+    console.error(err);
     return { status: false, message: err.message, statusCode: 500 };
   }
 }
-export { IAddress };
-

@@ -1,5 +1,10 @@
-
 import mongoose, { Schema, model } from 'mongoose';
+import { Readable } from 'stream';
+
+export interface IImage {
+  data: Buffer;
+  contentType: string;
+}
 
 export interface IAddress {
   provinceCode: string;
@@ -11,14 +16,14 @@ export interface IAddress {
   street?:      string;
 }
 
-export interface IPost{
+export interface IPost {
   title:        string;
   description:  string;
   propertyType: string;
   price:        number;
   area:         number;
   address:      IAddress;
-  images:       string[];      // rel paths like '/uploads/…'
+  images:       IImage[];
   createdAt:    Date;
   updatedAt:    Date;
 }
@@ -33,6 +38,14 @@ const addressSchema = new Schema<IAddress>({
   street:       { type: String }
 });
 
+const imageSchema = new Schema<IImage>(
+  {
+    data:        { type: Buffer, required: true },
+    contentType: { type: String, required: true }
+  },
+  { _id: false }
+);
+
 const postSchema = new Schema<IPost>(
   {
     title:        { type: String, required: true },
@@ -41,11 +54,19 @@ const postSchema = new Schema<IPost>(
     price:        { type: Number, required: true },
     area:         { type: Number, required: true },
     address:      { type: addressSchema, required: true },
-    images:       { type: [String], required: true }
+    images:       { type: [imageSchema], required: true }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
-export const postModel = model<IPost, mongoose.Model<IPost>>('Post', postSchema);
+export async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+export const postModel = model<IPost>('Post', postSchema);
+// bắt buộc phải export IPost để dùng ở docs và manager:
+// export type { IPost };
