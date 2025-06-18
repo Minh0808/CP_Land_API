@@ -6,8 +6,13 @@
      "strict": true,
      "esModuleInterop": true,
      "skipLibCheck": true,
-     "resolveJsonModule": true
+     "resolveJsonModule": true,
+    "outDir": "dist"
    },
-   "include": ["server.ts"]
+   "include": ["**/*.ts"],
+   "exclude": [
+    "node_modules",
+    "dist"
+  ]
  }
  
