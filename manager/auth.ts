@@ -42,7 +42,6 @@ async function login(req: any): Promise<AuthResult> {
     let jwt: string;
     try {
       jwt = createToken(payload);
-      console.log('✅ JWT generated in Auth.login:', jwt);
     } catch (err) {
       console.error('❌ Error generating JWT in Auth.login:', err);
       return { status: false, message: 'TOKEN_GENERATION_FAILED', statusCode: 500 };
@@ -84,7 +83,6 @@ async function getMe(userId: string): Promise<AuthResult> {
 
 // Hàm logout: client tự xóa token, hoặc blacklist nếu cần
 async function logout(req: any): Promise<AuthResult> {
-  console.log('🔒 Auth.logout called for user:', req.auth?.credentials);
   return {
     status:     true,
     message:    'SUCCESS_LOGOUT',

@@ -26,7 +26,6 @@ export default function createToken(payload: TokenPayload): string {
 
   try {
     const token = jwt.sign(payload, JWT_SECRET, options);
-    console.log('✅ JWT generated successfully:', token);
     return token;
   } catch (err) {
     // Thống kê lỗi lên console để debug
