@@ -1,6 +1,6 @@
 import type { RouteOptions, Request, ResponseToolkit } from '@hapi/hapi';
 import Joi from 'joi';
-import Auth from '../manager/Auth';
+import Auth from '../manager/auth';
 import Response from '../utils/Response';
 
 const login: RouteOptions = {

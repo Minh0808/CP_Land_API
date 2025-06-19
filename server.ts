@@ -8,10 +8,10 @@ import Jwt from 'hapi-auth-jwt2';
 
 import connectDB from './config/MongoDB';
 import authRoutes from './routes/auth';
-import signupRoutes from './routes/signup';
+import signupRoutes from './routes/Signup';
 import userRoutes from './routes/user';
 import chatBoxRoutes from './routes/chatbox';
-import hotNewRoutes from './routes/newfeeds';
+import hotNewRoutes from './routes/newFeeds';
 import panelsRoutes from './routes/panels';
 import postRoutes from './routes/post';
 

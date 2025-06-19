@@ -1,4 +1,4 @@
-// src/manager/Auth.ts
+
 import User from '../models/user';
 import bcrypt from 'bcrypt';
 import createToken from '../utils/token';
