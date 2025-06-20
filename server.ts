@@ -14,6 +14,7 @@ import chatBoxRoutes from './routes/chatbox';
 import hotNewRoutes from './routes/newFeeds';
 import panelsRoutes from './routes/panels';
 import postRoutes from './routes/post';
+import userMessRoutes from './routes/userMess';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -32,10 +33,9 @@ const init = async () => {
   // 2) Khởi tạo server
   const server = Hapi.server({
     port: PORT,
-    host: 'localhost',
     routes: {
       cors: {
-        origin: corsOrigins,
+        origin: ['*'],
         credentials: true,
       },
       files: {
@@ -112,11 +112,12 @@ const init = async () => {
   server.route(hotNewRoutes);
   server.route(panelsRoutes);
   server.route(postRoutes);
+  server.route(userMessRoutes);
 
   // 7) Start
   await server.start();
-  console.log(`🚀 Server running at ${server.info.uri}`);
-  console.log('🌐 CORS origins:', corsOrigins);
+  console.log(`Server running at ${server.info.uri}`);
+  console.log('CORS origins:', corsOrigins);
 };
 
 process.on('unhandledRejection', (err) => {

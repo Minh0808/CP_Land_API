@@ -4,10 +4,11 @@ import { Schema, model, Document } from 'mongoose';
 import nodemailer from 'nodemailer';
 dotenv.config();
 
-export interface ISignup extends Document {
+export interface UserMess extends Document {
    name:      string;
-  email:     string;
-  phone:     string;
+   email:     string;
+   phone:     string;
+   messager:  string;
   createdAt: Date;
 }
 
@@ -21,11 +22,12 @@ const transporter = nodemailer.createTransport({
 });
 
 // Định nghĩa schema
-const signupSchema = new Schema<ISignup>(
+const userMessSchema = new Schema<UserMess>(
   {
       name:  { type: String, required: true },
     email: { type: String, required: true },
-    phone: { type: String, required: true }
+    phone: { type: String, required: true },
+    messager: { type: String, required: true }
   },
   {
     timestamps: { createdAt: true, updatedAt: false }
@@ -33,7 +35,7 @@ const signupSchema = new Schema<ISignup>(
 );
 
 // Hook gửi mail sau khi save, không in log
-signupSchema.post('save', async function (doc: ISignup) {
+userMessSchema.post('save', async function (doc: UserMess) {
   try {
     const signupTime = doc.createdAt.toLocaleString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
@@ -45,12 +47,13 @@ signupSchema.post('save', async function (doc: ISignup) {
     await transporter.sendMail({
       from:    `"CP Land Website" <${process.env.MANAGE_EMAIL}>`,
       to:      process.env.ADMIN_EMAIL,
-      subject: '📣 New Signup from Website',
+      subject: 'Người dùng liên hệ từ website',
       html: `
-        <h3>Người dùng mới đăng ký:</h3>
+        <h3>Người dùng vừa liên hệ:</h3>
         <p><strong>Ten:</strong> ${doc.name}</p>
         <p><strong>Email:</strong> ${doc.email}</p>
         <p><strong>SĐT:</strong> ${doc.phone}</p>
+        <p><strong>Nội dung:</strong> ${doc.messager}</p>
         <p><em>Thời gian:</em> ${signupTime}</p>
       `
     });
@@ -59,4 +62,4 @@ signupSchema.post('save', async function (doc: ISignup) {
   }
 });
 
-export default model<ISignup>('Signup', signupSchema);
+export default model<UserMess>('Mess', userMessSchema);
