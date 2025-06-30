@@ -1,8 +1,8 @@
-import mongoose, { Schema, model } from 'mongoose';
-import { Readable } from 'stream';
+import { Schema, model } from 'mongoose';
 
 export interface IImage {
-  data: Buffer;
+  url:         string;
+  key:         string;
   contentType: string;
 }
 
@@ -40,11 +40,11 @@ const addressSchema = new Schema<IAddress>({
 
 const imageSchema = new Schema<IImage>(
   {
-    data:        { type: Buffer, required: true },
-    contentType: { type: String, required: true }
-  },
-  { _id: false }
-);
+    url:         { type: String, required: true },
+    key:         { type: String, required: true },
+    contentType: { type: String, required: true },
+  }
+)
 
 const postSchema = new Schema<IPost>(
   {
@@ -57,16 +57,6 @@ const postSchema = new Schema<IPost>(
     images:       { type: [imageSchema], required: true }
   },
   { timestamps: true }
-);
-
-export async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks);
-}
+)
 
 export const postModel = model<IPost>('Post', postSchema);
-// bắt buộc phải export IPost để dùng ở docs và manager:
-// export type { IPost };

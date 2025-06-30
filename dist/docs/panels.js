@@ -17,61 +17,63 @@ exports.getPanels = {
 };
 exports.postPanel = {
     tags: ['api', 'Panels'],
-    description: 'Tạo mới một panel',
+    description: 'Tạo mới một panel (chỉ nhận URL từ UploadThing)',
     auth: false,
     plugins: {
         'hapi-swagger': {
-            payloadType: 'form',
-            consumes: ['multipart/form-data'],
-            produces: ['application/json'],
+            payloadType: 'json',
+            consumes: ['application/json'],
+            produces: ['application/json']
         }
     },
     payload: {
-        allow: ['application/json', 'multipart/form-data'],
         parse: true,
-        multipart: true,
-        output: 'stream',
-        maxBytes: 10 * 1024 * 1024, // 10MB
+        multipart: false,
     },
     validate: {
         payload: joi_1.default.object({
-            // Nếu client nhập thẳng URL
-            image_url: joi_1.default.string()
-                .uri()
-                .optional()
-                .description('URL của ảnh (nếu không upload file)'),
-            // Nếu client upload file
-            file: joi_1.default.any()
-                .meta({ swaggerType: 'file' })
-                .optional()
-                .description('Upload file ảnh'),
-            sort_order: joi_1.default.number()
-                .optional()
-                .description('Thứ tự panel (nếu không gửi, hệ thống tự cấp +1)')
+            image_url: joi_1.default.string().uri().required()
+                .description('URL của ảnh, lấy từ UploadThing frontend'),
+            sort_order: joi_1.default.number().integer().optional()
+                .description('Thứ tự panel (nếu không gửi, tự cấp +1)')
         })
-            .or('image_url', 'file') // phải có ít nhất 1 trong 2
     },
     handler: async (req, h) => {
-        const result = await panels_1.default.createPanel(req.payload);
+        const payload = req.payload;
+        const result = await panels_1.default.createPanel(payload);
         return h.response(result).code(result.statusCode);
     }
 };
 exports.putPanel = {
     tags: ['api', 'Panels'],
-    description: 'Cập nhật panel theo ID',
+    description: 'Cập nhật panel theo ID (chỉ nhận URL mới)',
     auth: false,
+    plugins: {
+        'hapi-swagger': {
+            payloadType: 'json',
+            consumes: ['application/json'],
+            produces: ['application/json']
+        }
+    },
+    payload: {
+        parse: true,
+        multipart: false,
+    },
     validate: {
         params: joi_1.default.object({
             id: joi_1.default.string().length(24).required().description('ID của panel')
         }),
         payload: joi_1.default.object({
-            image_url: joi_1.default.string().required().description('URL của ảnh mới'),
-            sort_order: joi_1.default.number().integer().required().description('Thứ tự mới')
+            image_url: joi_1.default.string().uri().required()
+                .description('URL của ảnh mới, lấy từ UploadThing frontend'),
+            sort_order: joi_1.default.number().integer().optional()
+                .description('Thứ tự mới (nếu muốn cập nhật)')
         })
     },
     handler: async (req, h) => {
         const id = req.params.id;
-        const result = await panels_1.default.updatePanel(req.payload, id);
+        const payload = req.payload;
+        const result = await panels_1.default.updatePanel(id, payload);
         return h.response(result).code(result.statusCode);
     }
 };
@@ -90,14 +92,3 @@ exports.deletePanelDoc = {
         return h.response(result).code(result.statusCode);
     }
 };
-// export default {
-//   name:     'panels-docs',
-//   register: async (server: any) => {
-//     server.route([
-//       { method: 'GET',    path: '/api/panels',      options: getPanels },
-//       { method: 'POST',   path: '/api/panels',      options: postPanel },
-//       { method: 'PUT',    path: '/api/panels/{id}', options: putPanel },
-//       { method: 'DELETE', path: '/api/panels/{id}', options: deletePanelDoc }
-//     ]);
-//   }
-// };

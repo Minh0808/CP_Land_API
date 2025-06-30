@@ -1,21 +1,31 @@
 // src/models/panel.ts
 import { Schema, model, Document } from 'mongoose';
 
-export interface IPanel extends Document {
-   _id:        string;
-  image_url:  string;
-  sort_order: number;
-  createdAt:  Date;
+export interface imagesURL {
+   url: string
+   key: string
+   contentType: string
 }
 
-const panelSchema = new Schema<IPanel>(
+export interface newPanel extends Document {
+   images: imagesURL[]
+   sort_order: number
+}
+
+const imageSchema = new Schema<imagesURL>(
   {
-    image_url:  { type: String, required: true },
-    sort_order: { type: Number, required: true, default: 0 }
+    url:         { type: String, required: true },
+    key:         { type: String, required: true },
+    contentType: { type: String, required: true },
   },
-  {
-    timestamps: { createdAt: true, updatedAt: false }
-  }
+  { _id: false }
+)
+
+const panelSchema = new Schema<newPanel>(
+   {
+      images:     { type: [imageSchema], required: true },
+      sort_order: { type: Number, required: true }
+   }
 );
 
-export default model<IPanel>('Panel', panelSchema);
+export default model<newPanel>('Panel', panelSchema);

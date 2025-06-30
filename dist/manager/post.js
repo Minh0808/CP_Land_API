@@ -9,9 +9,8 @@ exports.deletePost = deletePost;
 const post_1 = require("../models/post");
 // helper chuyển IImage → ImageDTO
 function toDTO(img) {
-    const b64 = img.data.toString('base64');
     return {
-        data: `data:${img.contentType};base64,${b64}`,
+        url: img.url,
         contentType: img.contentType
     };
 }

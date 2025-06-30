@@ -17,15 +17,16 @@ const transporter = nodemailer_1.default.createTransport({
     }
 });
 // Định nghĩa schema
-const signupSchema = new mongoose_1.Schema({
+const userMessSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
-    phone: { type: String, required: true }
+    phone: { type: String, required: true },
+    messager: { type: String, required: true }
 }, {
     timestamps: { createdAt: true, updatedAt: false }
 });
 // Hook gửi mail sau khi save, không in log
-signupSchema.post('save', async function (doc) {
+userMessSchema.post('save', async function (doc) {
     try {
         const signupTime = doc.createdAt.toLocaleString('vi-VN', {
             timeZone: 'Asia/Ho_Chi_Minh',
@@ -36,12 +37,13 @@ signupSchema.post('save', async function (doc) {
         await transporter.sendMail({
             from: `"CP Land Website" <${process.env.MANAGE_EMAIL}>`,
             to: process.env.ADMIN_EMAIL,
-            subject: '📣 New Signup from Website',
+            subject: 'Người dùng liên hệ từ website',
             html: `
-        <h3>Người dùng mới đăng ký:</h3>
+        <h3>Người dùng vừa liên hệ:</h3>
         <p><strong>Ten:</strong> ${doc.name}</p>
         <p><strong>Email:</strong> ${doc.email}</p>
         <p><strong>SĐT:</strong> ${doc.phone}</p>
+        <p><strong>Nội dung:</strong> ${doc.messager}</p>
         <p><em>Thời gian:</em> ${signupTime}</p>
       `
         });
@@ -50,4 +52,4 @@ signupSchema.post('save', async function (doc) {
         // lỗi gửi mail sẽ bị silent fail
     }
 });
-exports.default = (0, mongoose_1.model)('Signup', signupSchema);
+exports.default = (0, mongoose_1.model)('Mess', userMessSchema);

@@ -3,7 +3,8 @@ import { postModel, IPost, IAddress, IImage } from '../models/post';
 
 // DTO để trả về client
 export interface ImageDTO {
-  data:        string;  // data URI: "data:image/jpeg;base64,…"
+  url:        string;
+  key:        string;
   contentType: string;
 }
 
@@ -29,9 +30,9 @@ export interface ManagerResult<T = any> {
 
 // helper chuyển IImage → ImageDTO
 function toDTO(img: IImage): ImageDTO {
-  const b64 = img.data.toString('base64');
   return {
-    data:        `data:${img.contentType};base64,${b64}`,
+    url: img.url,
+    key: img.key,
     contentType: img.contentType
   };
 }
@@ -141,3 +142,4 @@ export async function deletePost(id: string): Promise<ManagerResult<{id:string}>
     return { status: false, message: err.message, statusCode: 500 };
   }
 }
+

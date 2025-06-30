@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const panelSchema = new mongoose_1.Schema({
     image_url: { type: String, required: true },
-    sort_order: { type: Number, required: true, default: 0 }
+    sort_order: { type: Number, required: true }
 }, {
     timestamps: { createdAt: true, updatedAt: false }
 });

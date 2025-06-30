@@ -18,6 +18,8 @@ const chatbox_1 = __importDefault(require("./routes/chatbox"));
 const newFeeds_1 = __importDefault(require("./routes/newFeeds"));
 const panels_1 = __importDefault(require("./routes/panels"));
 const post_1 = __importDefault(require("./routes/post"));
+const userMess_1 = __importDefault(require("./routes/userMess"));
+const upload_1 = __importDefault(require("./routes/upload"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../.env') });
 const raw = process.env.CORS_ORIGINS ?? '';
 let corsOrigins = raw.split(',').map(s => s.trim()).filter(Boolean);
@@ -31,10 +33,9 @@ const init = async () => {
     // 2) Khởi tạo server
     const server = hapi_1.default.server({
         port: PORT,
-        host: 'localhost',
         routes: {
             cors: {
-                origin: corsOrigins,
+                origin: ['*'],
                 credentials: true,
             },
             files: {
@@ -103,10 +104,12 @@ const init = async () => {
     server.route(newFeeds_1.default);
     server.route(panels_1.default);
     server.route(post_1.default);
+    server.route(userMess_1.default);
+    server.route(upload_1.default);
     // 7) Start
     await server.start();
-    console.log(`🚀 Server running at ${server.info.uri}`);
-    console.log('🌐 CORS origins:', corsOrigins);
+    console.log(`Server running at ${server.info.uri}`);
+    console.log('CORS origins:', corsOrigins);
 };
 process.on('unhandledRejection', (err) => {
     console.error(err);
