@@ -16,6 +16,7 @@ import panelsRoutes from './routes/panels';
 import postRoutes from './routes/post';
 import userMessRoutes from './routes/userMess';
 import uploadRoutes from './routes/upload';
+import NewfeedsRoutes from './routes/newFeedsAdmin';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -115,6 +116,7 @@ const init = async () => {
   server.route(postRoutes);
   server.route(userMessRoutes);
   server.route(uploadRoutes);
+  server.route(NewfeedsRoutes);
 
   // 7) Start
   await server.start();
