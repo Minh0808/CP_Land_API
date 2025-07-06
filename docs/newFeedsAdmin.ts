@@ -111,38 +111,56 @@ export const getNewFeedById: RouteOptions = {
 };
 
 // PUT /api/newFeeds/{id}
+// PUT /api/newFeeds-admin/{id}
 export const updateNewFeedById: RouteOptions = {
-  auth:   false,
-  tags:   ['api','NewFeeds'],
+  auth: false,
+  tags: ['api','NewFeeds'],
   description: 'Cập nhật nội dung hoặc media của bài đăng',
+  // ← Thêm payload multipart giống create
+  payload: {
+    allow: ['application/json','multipart/form-data'],
+    multipart: true,
+    parse: true,
+    output: 'data',
+    maxBytes: 20 * 1024 * 1024
+  },
   validate: {
     params: Joi.object({ id: Joi.string().length(24).hex().required() }),
-    payload: Joi.object({
-      content: Joi.string().optional(),
-      media:   Joi.alternatives()
-                  .try(Joi.string(), Joi.array().items(
-                    Joi.object({
-                      key: Joi.string().required(),
-                      url: Joi.string().uri().required(),
-                      type: Joi.string().valid('image','video').required()
-                    })
-                  ))
-                  .optional()
+    payload: Joi.object<NewFeedsCreateInput>({   // lặp lại schema của create
+      title:       Joi.string().optional(),
+      excerpt:     Joi.string().optional(),
+      content:     Joi.string().optional(),
+      media: Joi.alternatives()
+        .try(
+          Joi.string(),
+          Joi.array().items(
+            Joi.object({
+              key: Joi.string().required(),
+              url: Joi.string().uri().required(),
+              type: Joi.string().valid('image','video').required()
+            })
+          )
+        )
+        .default('[]')
     }).unknown(false),
     failAction: 'error'
   },
   handler: async (request, h) => {
     const { id } = request.params as { id: string };
-    const raw   = request.payload as { content?: string; media?: string|IMedia[] };
+    const raw = request.payload as any;
+    // parse media
     let mediaArr: IMedia[]|undefined;
-    if (raw.media !== undefined) {
+    if (raw.media != null) {
       mediaArr = typeof raw.media === 'string'
         ? JSON.parse(raw.media)
         : raw.media;
     }
+    // build DTO
     const dto: Partial<NewFeedsCreateInput> = {
+      ...(raw.title   && { title:   raw.title }),
+      ...(raw.excerpt && { excerpt: raw.excerpt }),
       ...(raw.content && { content: raw.content }),
-      ...(mediaArr && { media: mediaArr })
+      ...(mediaArr    && { media:   mediaArr  })
     };
     const res = await NewFeeds.updateNewFeed(id, dto);
     return h
