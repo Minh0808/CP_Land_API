@@ -19,13 +19,15 @@ export const signupPost: RouteOptions = {
   auth:        false,
   validate:    {
     payload: Joi.object({
-      name: Joi.string().required().description('Tên người dùng'),
+      name: Joi.string().trim().optional().default('Khách hàng').description('Tên người dùng'),
       email: Joi.string().email().required().description('Email của user'),
       phone: Joi.string().required().description('Số điện thoại')
     })
+    .unknown(true)
   },
   handler:     async (req: Request, h: ResponseToolkit) => {
-   const { name, email, phone } = req.payload as any;
+   const { name, email, phone } = req.payload as 
+   { name: string; email: string; phone: string };
     const result = await Signup.register(name, email, phone);
     return Response(result, h);
   }

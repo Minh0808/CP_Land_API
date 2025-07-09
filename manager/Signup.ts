@@ -2,13 +2,13 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import Signup, { ISignup } from '../models/Signup';
+import { sendSignupNotification } from '../models/Signup';
 
 export interface SignupDTO {
    name:  string;
   email:     string;
   phone:     string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface ManagerResult<T = any> {
@@ -25,25 +25,32 @@ function health(): ManagerResult {
   return { status: true, message: 'Signup service ready', statusCode: 200 };
 }
 
-async function register(
-  name:  string,
+export async function register(
+  name: string,
   email: string,
   phone: string
 ): Promise<ManagerResult<SignupDTO>> {
   try {
-    // Chỉ lưu document mới; hook post-save sẽ gửi mail
-    const doc = (await Signup.create({name, email, phone })) as ISignup;
+    // 1) Gửi mail ngay khi có request đăng ký
+    await sendSignupNotification(name, email, phone);
 
-    const data: SignupDTO = {
-      name:  doc.name,
-      email:     doc.email,
-      phone:     doc.phone,
-      createdAt: doc.createdAt
+    // 2) Trả về DTO giả (hoặc chỉ name,email,phone nếu bạn không cần createdAt)
+    const now = new Date().toISOString();
+    const data: SignupDTO = { name, email, phone, createdAt: now };
+
+    return {
+      status: true,
+      message: 'Đăng ký thành công. Email xác nhận đã được gửi cho quản trị.',
+      data,
+      statusCode: 200
     };
-    return { status: true, message: 'Đăng ký thành công.', data, statusCode: 200 };
   } catch (err: any) {
     console.error('[Signup] register error:', err);
-    return { status: false, message: err.message || 'CREATE_ERROR', statusCode: 500 };
+    return {
+      status: false,
+      message: 'Có lỗi khi gửi mail. Vui lòng thử lại sau.',
+      statusCode: 500
+    };
   }
 }
 export default { health, register };

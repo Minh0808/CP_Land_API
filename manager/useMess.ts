@@ -1,5 +1,5 @@
 
-import Mess, { UserMess } from '../models/userMess';
+import { sendMessNotification } from '../models/userMess';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -8,7 +8,7 @@ export interface UserMessDTO {
   email:     string;
   phone:     string;
   messager:  string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface ManagerResult<T = any> {
@@ -32,16 +32,10 @@ async function register(
   messager: string
 ): Promise<ManagerResult<UserMessDTO>> {
   try {
-    // Chỉ lưu document mới; hook post-save sẽ gửi mail
-    const doc = (await Mess.create({name, email, phone, messager})) as UserMess;
-
-    const data: UserMessDTO = {
-      name:  doc.name,
-      email:     doc.email,
-      phone:     doc.phone,
-      messager:  doc.messager,
-      createdAt: doc.createdAt
-    };
+   await sendMessNotification(name, email, phone, messager);
+    const now = new Date().toISOString();
+    const data: UserMessDTO = { name, email, phone, messager, createdAt: now };
+    
     return { status: true, message: 'Liên hệ thành công.', data, statusCode: 200 };
   } catch (err: any) {
     console.error('[Signup] register error:', err);
